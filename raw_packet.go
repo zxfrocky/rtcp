@@ -1,6 +1,9 @@
 package rtcp
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 // RawPacket represents an unparsed RTCP packet. It's returned by Unmarshal when
 // a packet with an unknown type is encountered.
@@ -33,7 +36,11 @@ func (r RawPacket) Header() Header {
 
 // DestinationSSRC returns an array of SSRC values that this packet refers to.
 func (r *RawPacket) DestinationSSRC() []uint32 {
-	return []uint32{}
+	if r.Header().Type == TypeApplicationDefined && r.Header().Length >= 1 {
+		return []uint32{binary.BigEndian.Uint32((*r)[4:8])}
+	} else {
+		return []uint32{}
+	}
 }
 
 func (r RawPacket) String() string {
